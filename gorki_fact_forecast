@@ -48,8 +48,8 @@ list_of_forecasts = os.listdir('C:/Users/Maksim.Smirnov/OneDrive - Unilever/Docu
 
 for material_id in material_list:
     
-
-
+    
+    
 # заполняем данными по фактическому потреблению
     for i in range(df_gorka.shape[0]):
         for j in range (i+1):
@@ -74,20 +74,20 @@ for material_id in material_list:
         for n in range (m+1,df_gorka.shape[0]):
             df_gorka.iloc[n,m] = df_gorka.iloc[n-1,m]  
 
-    
-    
+
+
 #    os.system( 'python C:/Users/Maksim.Smirnov/OneDrive - Unilever/Documents/Проекты/Горки/gorki_forecast_loop.py')
  #   runpy.run_path('C:/Users/Maksim.Smirnov/OneDrive - Unilever/Documents/Проекты/Горки/gorki_forecast_loop.py')
-    
-    
-    
-    
+
+
+
+
 ##############################################    
-    
+
+
+
 
     
-    
-        
     
     
     for forecast in list_of_forecasts:
@@ -160,9 +160,15 @@ for material_id in material_list:
         #df_gorka_forecast = pd.concat([df_gorka, df_id_material_forecast.iloc[:,0:len(df_id_material_forecast.columns)]])
         
         
+
+        
         # "обрезаем" лишнне после соеденения таблиц
         df_gorka_forecast = df_gorka_forecast.iloc[0:df_gorka.shape[0]+1, 0:df_gorka.shape[1]]
         
+        # если в файле с прогнозом не указаны номера недель, которые попали в отчет "горка", то нужно перейти обработке следующего файла с прогнозом
+       
+        if not df_forecast.columns[2] in list(df_gorka.index) :
+            continue
         
         # индекс строки, которая соответствует недели, на которой был составлен прогноз и которую нужно найти в горке по горизонтали
         forecast_week_number_index = list(df_gorka.index).index(df_forecast.columns[2])
@@ -175,53 +181,53 @@ for material_id in material_list:
 
 
 
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     df_gorka_total = pd.concat([df_gorka_total, df_gorka_forecast])
     
     
@@ -287,5 +293,3 @@ for i in range(df_gorka_total.shape[0]):
 
 
 writer.save()
-
-

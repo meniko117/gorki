@@ -398,7 +398,7 @@ for i in myList[0::gorka_size]:
             
             worksheet.conditional_format(range_df, {'type': 'cell',
                                                 'criteria': '>',
-                                                'value': list_of_avrgs[j-3], 
+                                                'value': list_of_avrgs[j-3] * 1.7, 
                                                 'format': format2})       
 # 0:22
 # 13:22

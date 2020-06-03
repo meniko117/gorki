@@ -1,7 +1,6 @@
 import xlsxwriter
 import pandas as pd
 import math
-import runpy
 import numpy as np
 
 # загружаем исходные данные по фактическому потреблению
@@ -50,7 +49,7 @@ for material_id in material_list:
     
 
 
-# заполняем данными по фактическому потреблению
+# заполняем данными по фактическому потреблению для каждого материала и номера недели
     for i in range(df_gorka.shape[0]):
         for j in range (i+1):
         
@@ -142,6 +141,30 @@ for forecast in list_of_forecasts:
             aggfunc=sum).rename_axis(None, axis=1).reset_index()
     
     df_forecast.columns = df_forecast.columns.map(str)
+    # проверяем имеются ли недели в прогнозе, которые совпадают с неделями из фактического потребления 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    if len(list(set(list(df_gorka_total_forecast)[3:]) & set(list(df_forecast)[2:]))) < 2 or  len(list(set(list( df_gorka_total_forecast['week_num'])) & set([float(df_forecast.columns[2])])))==0:
+        continue
+    
+   
+    
+
+   
+   
+    
+    
+    
+    
+    
     # ищем индексы вхождения номера первой указанной недели, в названиях колонок
     # номера недель после годового цикла повторяются, а для очтета "горка" нужны только уникальные "ближайшие" недели
     # неободимо отбросить те, которые повторятся после годового цикла
@@ -227,7 +250,7 @@ for forecast in list_of_forecasts:
 
 df_gorka_total = df_gorka_total_forecast
 
-df_gorka_total.loc[:,'Итого'] = df_gorka_total.sum(axis=1)
+#df_gorka_total.loc[:,'Итого'] = df_gorka_total.sum(axis=1)
 
 col_list = list(df_gorka_total.columns[3:df_gorka_total.shape[1]-1])
 df_gorka_total['Итого'] = df_gorka_total[col_list].sum(axis=1)
@@ -236,7 +259,7 @@ df_gorka_total['% изменений']=df_gorka_total.loc[:,'Итого'].pct_ch
 df_gorka_total['% изменений'] = df_gorka_total['% изменений'].astype(float).map("{:.2%}".format)
 
 for i in range(df_gorka_total.shape[0]-1):
-    col_list = list(df_gorka_total.columns[ ( (df_gorka_total.loc[i]['week_num']).astype(int)-(df_gorka_total['week_num'][0]).astype(int) +4) :17  ])
+    col_list = list(df_gorka_total.columns[ ( (df_gorka_total.loc[i]['week_num']).astype(int)-(df_gorka_total['week_num'][0]).astype(int) +4) :df_gorka_total.shape[1]-4  ])
     #print(col_list)
     mean_of_row= df_gorka_total.iloc[i][col_list].mean()
     df_gorka_total.at[i,'Среднее за весь прогнозный период'] =mean_of_row
@@ -390,4 +413,10 @@ writer.save()
 
 
 
+# import getpass
+# getpass.getuser()
+
+
+# import os
+# os.system("taskkill /im cooispi_w10_Tuesday.xlsx")
 

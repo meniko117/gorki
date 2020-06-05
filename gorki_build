@@ -13,9 +13,10 @@ def Main():
     Path("C:/Users/" + sys_user + "/python_SAP_scripting/gorki_report").mkdir(parents=True, exist_ok=True)
     
     # загружаем исходные данные по фактическому потреблению
-    path = r"C:\Users\Maksim.Smirnov\python_SAP_scripting\MB51_current_report" + "\\ ".strip()
+    #path = r"C:\Users\Maksim.Smirnov\python_SAP_scripting\MB51_current_report" + "\\ ".strip()
+    path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB51_current_report" + "\\ ".strip()
     
-    path = path.replace('Maxim.Smirnov', sys_user)
+    #path = path.replace('Maxim.Smirnov', sys_user)
     
     df_consumption = pd.read_excel(path + 'export_MB51.xlsx', dtype={'Material': 'str'})
     

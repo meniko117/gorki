@@ -4,6 +4,8 @@ def Main():
     import pandas as pd
     import math
     import numpy as np
+    import datetime
+    from datetime import timezone
     
     #   получить имя пользователя для создания нужных папок
     import getpass
@@ -30,16 +32,50 @@ def Main():
     # определеяем период планирования (мин номер недели и максимальный)
     #len(df_consumption['Week_Number'].value_counts())
     
-    min_week_num = int(df_consumption['Week_Number'].min())
-    max_week_num = int(df_consumption['Week_Number'].max())
-    gorka_size = max_week_num -min_week_num+1
+    ##############################################################################################
+    # удаляем строку, где нет даты. При имеющийся форме отчета из SAP- это последняя строка отчета ("итого")
+    df_consumption = df_consumption[df_consumption['Entry Date'].notna()]
+    
+    df_consumption ['Y_W_D'] = df_consumption['Entry Date'].apply(lambda x: str(x.isocalendar()[0:2]))
+    
+    # фмируем timestamp недели, на которую выпала дата. Именно недели, а не конркетной даты, иначе группировка будет не по неделям, а по датам. 
+    # Для этого в коде определяем неделю для каждой даты, но timestamp ей присваиваем для понедельника этой недели. В коде ниже за это отвечает '1' в strprtime
+    df_consumption['datetime'] =  df_consumption['Y_W_D'].apply(lambda x: datetime.datetime.strptime( x[:-1]+', 1', '(%G, %V, %u').replace(tzinfo=timezone.utc).timestamp())
+    
+    # сортируем в порядке убывания datetime (на случай, если в выгрузке из SAP изменена хронология)
+    df_consumption = df_consumption.sort_values(by=['datetime'], ascending=False)
+    
+    def week_year(x):
+        return pd.to_datetime(x, unit='s', origin='unix').weekofyear
+
+    # получаем хронологически в порядке убывания номера недель, с учетом года, на который номер недели выпадает
+    df_consumption['week_from_time_stamp'] = df_consumption['datetime'].apply(lambda x : week_year(x))
+    
+    week_num_list = df_consumption['week_from_time_stamp'].drop_duplicates().to_list()
+    week_num_list.reverse()
+    
+
+
+    
+    min_week_num = week_num_list[0]
+    max_week_num = week_num_list[len(week_num_list)-1]
+    
+    
+    
+    
+    
+    
+    
+    # min_week_num = int(df_consumption['Week_Number'].min())
+    # max_week_num = int(df_consumption['Week_Number'].max())
+    gorka_size = len(week_num_list) # max_week_num -min_week_num+1
     
     # составляем матрицу "заготовку" для заполнения данными размером min_wek_num x max_week_num
     df_gorka = pd.DataFrame(index=range(gorka_size),columns=range(gorka_size))
     
-    # меняем названия колонок и рядов на номера недель 
-    df_gorka.columns = [str(i) for i in range(min_week_num,max_week_num+1)]
-    df_gorka.index = [str(i) for i in range(min_week_num,max_week_num+1)]
+    # меняем названия колонок и рядов на номера недель и приводим к строковым переменным
+    df_gorka.columns = list(map(str, week_num_list)) #[str(i) for i in range(min_week_num,max_week_num+1)]
+    df_gorka.index = list(map(str, week_num_list)) # [str(i) for i in range(min_week_num,max_week_num+1)]
     
     
     
@@ -101,7 +137,12 @@ def Main():
         
         
         
-        df_gorka_total = pd.concat([df_gorka_total, df_gorka])
+        # df_gorka_total = pd.concat([df_gorka_total, df_gorka] , sort=False)
+        # cols = df_gorka_total.columns
+        
+        # df_gorka_total = df_gorka_total[cols]
+        # df_gorka_total.append(df_gorka, sort=False)
+        df_gorka_total = df_gorka_total.append(df_gorka)[df_gorka.columns.tolist()]
         
         
     # обогащаем результирущую таблицу названиями позиций
@@ -113,7 +154,8 @@ def Main():
     df_gorka_total = df_gorka_total.drop('Material', 1)
     
     #вводим колонку с номерами недель, попавшими в отчет, делаем это для каждой позиции   
-    repeat_arr = list(range(min_week_num , max_week_num+1))
+    # repeat_arr = list(range(min_week_num , max_week_num+1))
+    repeat_arr = week_num_list
     df_gorka_total = df_gorka_total.join(pd.DataFrame(repeat_arr * int((len(df_gorka_total)/len(repeat_arr)+1)),columns=['week_num']))
     
     
@@ -155,6 +197,56 @@ def Main():
         
         df_forecast.columns = df_forecast.columns.map(str)
         # проверяем имеются ли недели в прогнозе, которые совпадают с неделями из фактического потребления 
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        # import datetime
+        # from datetime import timezone
+        
+        df_forecast_new_template['Y_W_D'] = df_forecast_new_template['Requirement date'].apply(lambda x: str(x.isocalendar()[0:2]))
+           
+        
+        df_forecast_new_template['datetime'] =  df_forecast_new_template['Y_W_D'].apply(lambda x: datetime.datetime.strptime( x[:-1]+', 1', '(%G, %V, %u').replace(tzinfo=timezone.utc).timestamp())
+        
+        df_forecast = df_forecast_new_template.pivot_table(
+                        values='Requirement quantity (EINHEIT)', 
+                        index=['Material', 'Material Description'], 
+                        columns='datetime', 
+                        aggfunc=sum).rename_axis(None, axis=1).reset_index()
+         
+        
+        
+        def week_year(x):
+            return pd.to_datetime(x, unit='s', origin='unix').weekofyear
+        
+        
+        
+        df_forecast.columns = df_forecast.columns [:2].tolist() + list(map(week_year, df_forecast.columns[2:df_forecast.shape[1]]))
+        
+        df_forecast.columns = df_forecast.columns.map(str)
+        
+
+
+        
+        
+        
+        
+        
         
         
         
@@ -432,4 +524,24 @@ def Main():
 #-Main------------------------------------------------------------------
 if __name__ == "__main__":
   Main()
+
+
+
+#  # загружаем исходные данные по MB52
+# #path = r"C:\Users\Maksim.Smirnov\python_SAP_scripting\MB51_current_report" + "\\ ".strip()
+# path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB51_current_report" + "\\ ".strip()
+
+# #path = path.replace('Maxim.Smirnov', sys_user)
+
+# df_stock = pd.read_excel(path + 'export_MB52.xlsx', dtype={'Material': 'str'})
+# df_stock_total = df_stock.groupby(['Material'])["Unrestricted"].apply(lambda x : x.sum()).reset_index()
+# df_stock_total ['week_num'] = 24
+
+# df_gorka_MB52 = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
+
+
+# cols_to_order = ['material_id', 'Material Description', 'week_num', 'Unrestricted']
+# new_columns = cols_to_order + (df_gorka_MB52.columns.drop(cols_to_order).tolist())
+# df_gorka_MB52 = df_gorka_MB52[new_columns]    
+# df_gorka_MB52.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
 

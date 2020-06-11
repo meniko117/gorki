@@ -1,0 +1,215 @@
+#-Begin-----------------------------------------------------------------
+
+#-Includes--------------------------------------------------------------
+import sys, win32com.client
+import os
+
+# import comtypes, comtypes.client
+
+#-Sub Main--------------------------------------------------------------
+def Main():
+    
+   
+  
+    # try:
+    #     os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB51_current_report/export_MB51.xlsx") 
+    # except OSError:
+    #  pass   
+    
+    # try:
+    #     os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/cooispi_current_report/export_cooispi.xlsx") 
+    # except OSError:
+    #  pass 
+          
+     item_id ="21072242"              
+    
+     try:
+    
+        SapGuiAuto = win32com.client.GetObject("SAPGUI")
+        if not type(SapGuiAuto) == win32com.client.CDispatch:
+          return
+    
+        application = SapGuiAuto.GetScriptingEngine
+        if not type(application) == win32com.client.CDispatch:
+          SapGuiAuto = None
+          return
+    
+        connection = application.Children(0)
+        if not type(connection) == win32com.client.CDispatch:
+          application = None
+          SapGuiAuto = None
+          return
+    
+        session = connection.Children(0)
+        if not type(session) == win32com.client.CDispatch:
+          connection = None
+          application = None
+          SapGuiAuto = None
+          return
+      
+        if 1 == 1:  
+            try:
+                os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB51_current_report/export_MB51.xlsx") 
+            except OSError:
+                pass  
+            
+            session.findById("wnd[0]").resizeWorkingPane (133,37,False)
+        
+            session.findById("wnd[0]/tbar[0]/okcd").text = "/nMB51"
+            session.findById("wnd[0]").sendVKey (0)
+            session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = "Z001"
+            session.findById("wnd[0]/usr/ctxtMATNR-LOW").text = item_id
+            
+            
+            
+            session.findById("wnd[0]/usr/btn%_MATNR_%_APP_%-VALU_PUSH").press()
+            
+            
+            session.findById("wnd[1]/tbar[0]/btn[23]").press()
+            session.findById("wnd[2]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\OneDrive - Unilever\\Documents\\Проекты\\SAP GUI scripts"
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").text = "sample_items_list.csv"
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").caretPosition = 21
+            session.findById("wnd[2]/tbar[0]/btn[0]").press()
+
+            
+            # session.findById("wnd[1]/usr/tabsTAB_STRIP/tabpSIVA/ssubSCREEN_HEADER:SAPLALDB:3010/tblSAPLALDBSINGLE/ctxtRSCSEL_255-SLOW_I[1,1]").setFocus
+            # session.findById("wnd[1]/usr/tabsTAB_STRIP/tabpSIVA/ssubSCREEN_HEADER:SAPLALDB:3010/tblSAPLALDBSINGLE/ctxtRSCSEL_255-SLOW_I[1,1]").caretPosition = 0
+            # session.findById("wnd[1]").sendVKey(24)
+            session.findById("wnd[1]").sendVKey(12)
+           
+            # session.findById("wnd[1]/tbar[0]/btn[12]").press
+            session.findById("wnd[2]/usr/btnSPOP-OPTION1").press()
+            # session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
+            
+            
+            
+            session.findById("wnd[0]/usr/ctxtBWART-LOW").text = "261"
+            session.findById("wnd[0]/usr/ctxtBWART-HIGH").text = "262"
+            session.findById("wnd[0]/usr/ctxtBUDAT-LOW").text = "01.03.2020"
+            session.findById("wnd[0]/usr/ctxtBUDAT-HIGH").text = "10.03.2020"
+            
+            
+                        
+            
+            # session.findById("wnd[0]/usr/radRHIER_L").setFocus
+            # session.findById("wnd[0]/usr/radRHIER_L").select
+         
+            # session.findById("wnd[0]/usr/radRFLAT_L").setFocus
+            # session.findById("wnd[0]/usr/radRFLAT_L").select
+            
+            session.findById("wnd[0]/usr/radRFLAT_L").setFocus
+            session.findById("wnd[0]/usr/radRFLAT_L").select
+            session.findById("wnd[0]/usr/ctxtALV_DEF").text = "/spb_stk_mvt"
+            session.findById("wnd[0]/usr/ctxtALV_DEF").setFocus
+            session.findById("wnd[0]/usr/ctxtALV_DEF").caretPosition = 12
+                        
+                        
+
+            session.findById("wnd[0]/usr/chkSHORTDOC").selected = False
+            session.findById("wnd[0]/usr/chkDATABASE").selected = True
+            
+            session.findById("wnd[0]/usr/radPA_DBSTD").select
+            session.findById("wnd[0]/usr/ctxtALV_DEF").text = "/spb_stk_mvt"
+            session.findById("wnd[0]/usr/radPA_DBSTD").setFocus
+            session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
+            session.findById("wnd[0]").sendVKey(8) #'эмулирует нажатие F8 для выполнения кнопки
+            session.findById("wnd[0]").sendVKey(16)
+            #session.findById("wnd[0]/mbar/menu[0]/menu[0]/menu[0]").select
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\python_SAP_scripting\\MB51_current_report\\"
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "export_MB51.xlsx"
+            # session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
+            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
+            session.findById("wnd[1]").sendVKey(0)
+            
+
+        
+        
+        
+        
+        if 1 == 2:  
+            try:
+                 os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/cooispi_current_report/export_cooispi.xlsx") 
+            except OSError:
+                  pass 
+        
+            session.findById("wnd[0]/tbar[0]/okcd").text = "/ncooispi"
+            session.findById("wnd[0]").sendVKey (0)
+            
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/cmbPPIO_ENTRY_SC1100-PPIO_LISTTYP").key = "PPIOM000"
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/ctxtPPIO_ENTRY_SC1100-ALV_VARIANT").text = "/RUB_COMP"
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PRODORDS").setFocus
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PRODORDS").selected = True
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PLANNEDORDS").setFocus
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PLANNEDORDS").selected = True
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_WERKS-LOW").text = "Z001"
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-LOW").text = "01.05.2020"
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").text = "05.05.2020"
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").setFocus
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").caretPosition = 10
+            # session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
+            session.findById("wnd[0]").sendVKey(8)
+            ## добавлена строка
+            # session.findById("wnd[0]").sendVKey(16)
+            session.findById("wnd[0]/usr/cntlCUSTOM/shellcont/shell/shellcont/shell").pressToolbarButton ("&NAVIGATION_PROFILE_TOOLBAR_EXPAND")
+            session.findById("wnd[0]/usr/cntlCUSTOM/shellcont/shell/shellcont/shell").pressToolbarContextButton ("&MB_EXPORT")
+            session.findById("wnd[0]/usr/cntlCUSTOM/shellcont/shell/shellcont/shell").selectContextMenuItem ("&XXL")
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\python_SAP_scripting\\cooispi_current_report\\"
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "export_cooispi.xlsx"
+            # session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 14
+            session.findById("wnd[1]").sendVKey(0)
+            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+    
+    
+            
+            #MB52
+        if 2 == 1: 
+            try:
+                os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB51_current_report/export_MB52.xlsx") 
+            except OSError:
+                pass 
+           
+            session.findById("wnd[0]/tbar[0]/okcd").text = "/nMB52"
+            session.findById("wnd[0]").sendVKey (0)
+            session.findById("wnd[0]/usr/chkPA_SOND").selected = True
+            session.findById("wnd[0]/usr/ctxtMATNR-LOW").text = ""
+            session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = "Z001"
+            session.findById("wnd[0]/usr/radPA_FLT").setFocus
+            session.findById("wnd[0]/usr/radPA_FLT").select
+            session.findById("wnd[0]/usr/ctxtP_VARI").text = "/rub_stock"
+            session.findById("wnd[0]/usr/ctxtP_VARI").setFocus
+            session.findById("wnd[0]/usr/ctxtP_VARI").caretPosition = 10
+            
+            session.findById("wnd[0]").sendVKey(8) #'эмулирует нажатие F8 для выполнения кнопки
+            session.findById("wnd[0]").sendVKey(43)
+            #session.findById("wnd[0]/mbar/menu[0]/menu[0]/menu[0]").select
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\python_SAP_scripting\\MB51_current_report\\"
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "export_MB52.xlsx"
+            # session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
+            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
+            session.findById("wnd[1]").sendVKey(0)
+                        
+            
+            
+            
+            
+            
+        
+     except:
+          print(sys.exc_info())
+      
+     finally:
+          session = None
+          connection = None
+          application = None
+          SapGuiAuto = None
+
+#-Main------------------------------------------------------------------
+if __name__ == "__main__":
+  Main()
+
+#-End-------------------------------------------------------------------

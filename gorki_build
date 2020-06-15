@@ -512,11 +512,101 @@ def Main():
                 
                 worksheet.conditional_format(range_df, {'type': 'cell',
                                                     'criteria': '>',
-                                                    'value': list_of_avrgs[j-3] * 1.7, 
+                                                    'value': list_of_avrgs[j-3] * 1.3, 
                                                     'format': format2})       
-    # 0:22
-    # 13:22
-    # 0:22
+
+
+
+
+
+   
+    # загружаем исходные данные по MB52
+    #путь к папке с фактическими остатками
+   
+        path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB52_current_report" + "\\ ".strip()
+        
+ 
+    
+    #Обработка ошибок, в случае, если папки  с отчетами MB52 нет или папка пустая
+    try:
+        list_of_MB52_reports = os.listdir('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/')
+    except OSError:
+                pass 
+    
+    # в случае, если папка не пустая, то будут обработаны только те файлы, которые относятся к периоду "горки"
+    if len(list_of_MB52_reports) !=0:
+        
+    
+        import re
+        
+        # функция для определения номера недели из имени файла по маске "MB52_{номер недели}_{день недели}", например, "MB52_w22_Monday"
+        def report_week_number(x):
+            return x[6:([m.start() for m in re.finditer('_', x)][1])]
+        
+        # получаем список недель, к которым относятся выгруженные очтеты в папке       
+        week_num_report_list = list(map(report_week_number, list_of_MB52_reports)) 
+        week_num_report_list = list(map(int,week_num_report_list))
+        
+        # определеяем какие отчеты нужны для включения в горку по номеру недели (если номер недели пристутвует в отчете для "горки", то отчет включаем)
+        both= set(week_num_list).intersection(week_num_report_list)
+        required_reports_indices = [week_num_report_list.index(x) for x in both]
+        
+        required_reports_list = list(pd.Series(list_of_MB52_reports)[ required_reports_indices])
+        
+        
+        #df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/' + stock_report, dtype={'Material': 'str'})
+        df_stock_all_reports = pd.DataFrame()
+        
+        for stock_report in required_reports_list:
+            
+            df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/' + stock_report, dtype={'Material': 'str'})
+            # вставить номер недели,на которой был выгружен очтет
+            df_stock ['week_num']= int(report_week_number (stock_report))
+            
+            df_stock_all_reports =df_stock_all_reports.append(df_stock)
+            
+        
+            
+        df_stock_total = df_stock_all_reports.groupby(['Material', 'week_num'])["Unrestricted"].apply(lambda x : x.sum()).reset_index()
+    else:
+        pass
+    # при необходимости создается отедльная таблица df_gorka_MB52
+    # df_gorka_MB52 = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
+    
+    
+    # cols_to_order = ['material_id', 'Material Description', 'week_num', 'Unrestricted']
+    # new_columns = cols_to_order + (df_gorka_MB52.columns.drop(cols_to_order).tolist())
+    # df_gorka_MB52 = df_gorka_MB52[new_columns]    
+    # df_gorka_MB52.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
+    
+    df_gorka_total = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
+    
+    
+    cols_to_order = ['material_id', 'Material Description', 'week_num', 'Unrestricted']
+    new_columns = cols_to_order + (df_gorka_total.columns.drop(cols_to_order).tolist())
+    df_gorka_total = df_gorka_total[new_columns]    
+    df_gorka_total.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+           
     
     writer.save()
 
@@ -528,14 +618,46 @@ if __name__ == "__main__":
 
 
 #  # загружаем исходные данные по MB52
-# #path = r"C:\Users\Maksim.Smirnov\python_SAP_scripting\MB51_current_report" + "\\ ".strip()
-# path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB51_current_report" + "\\ ".strip()
+
+# путь к папке с фактическими остатками
+
+# path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB52_current_report" + "\\ ".strip()
 
 # #path = path.replace('Maxim.Smirnov', sys_user)
 
-# df_stock = pd.read_excel(path + 'export_MB52.xlsx', dtype={'Material': 'str'})
-# df_stock_total = df_stock.groupby(['Material'])["Unrestricted"].apply(lambda x : x.sum()).reset_index()
-# df_stock_total ['week_num'] = 24
+# list_of_MB52_reports = os.listdir('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/')
+# import re
+
+# # функция для определения номера недели из имени файла   
+# def report_week_number(x):
+#     return x[6:([m.start() for m in re.finditer('_', x)][1])]
+
+# # получаем список недель, к которым относятся выгруженные очтеты в папке       
+# week_num_report_list = list(map(report_week_number, list_of_MB52_reports)) 
+# week_num_report_list = list(map(int,week_num_report_list))
+
+# # определеяем какие отчеты нужны для включения в горку по номеру недели (если номер недели пристутвует в отчете для "горки", то отчет включаем)
+# both= set(week_num_list).intersection(week_num_report_list)
+# required_reports_indices = [week_num_report_list.index(x) for x in both]
+
+# required_reports_list = list(pd.Series(list_of_MB52_reports)[ required_reports_indices])
+
+
+# df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/' + stock_report, dtype={'Material': 'str'})
+# df_stock_all_reports = pd.DataFrame()
+
+# for stock_report in required_reports_list:
+    
+#     df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/' + stock_report, dtype={'Material': 'str'})
+#     # вставить номер недели,на которой был выгружен очтет
+#     df_stock ['week_num']= int(report_week_number (stock_report))
+    
+#     df_stock_all_reports =df_stock_all_reports.append(df_stock)
+    
+
+    
+# df_stock_total = df_stock_all_reports.groupby(['Material', 'week_num'])["Unrestricted"].apply(lambda x : x.sum()).reset_index()
+
 
 # df_gorka_MB52 = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
 
@@ -544,4 +666,5 @@ if __name__ == "__main__":
 # new_columns = cols_to_order + (df_gorka_MB52.columns.drop(cols_to_order).tolist())
 # df_gorka_MB52 = df_gorka_MB52[new_columns]    
 # df_gorka_MB52.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
+
 

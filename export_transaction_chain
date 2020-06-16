@@ -3,6 +3,13 @@
 #-Includes--------------------------------------------------------------
 import sys, win32com.client
 import os
+import getpass
+import pandas as pd
+from pathlib import Path
+
+import shutil
+import datetime
+from datetime import datetime
 
 # import comtypes, comtypes.client
 
@@ -10,6 +17,7 @@ import os
 def Main():
     
    
+    
   
     # try:
     #     os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB51_current_report/export_MB51.xlsx") 
@@ -20,9 +28,14 @@ def Main():
     #     os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/cooispi_current_report/export_cooispi.xlsx") 
     # except OSError:
     #  pass 
-          
+     sys_user = getpass.getuser()     
      item_id ="21072242"              
-    
+     path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting" + "\\ ".strip()
+
+     df_template = pd.read_excel(path + 'template_for_all_transactions.xlsm', dtype={'Material': 'str'})
+
+     # получаем список признаков для каждой транзакции запускать/ не запускать
+     transactions_check_list = df_template.iloc[:, 4:6]
      try:
     
         SapGuiAuto = win32com.client.GetObject("SAPGUI")
@@ -47,7 +60,7 @@ def Main():
           SapGuiAuto = None
           return
       
-        if 1 == 1:  
+        if transactions_check_list.iloc[1,1]== 'да':  
             try:
                 os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB51_current_report/export_MB51.xlsx") 
             except OSError:
@@ -57,17 +70,15 @@ def Main():
         
             session.findById("wnd[0]/tbar[0]/okcd").text = "/nMB51"
             session.findById("wnd[0]").sendVKey (0)
-            session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = "Z001"
-            session.findById("wnd[0]/usr/ctxtMATNR-LOW").text = item_id
+            session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Plant')].values[:,2] [0]
+            session.findById("wnd[0]/usr/ctxtMATNR-LOW").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Material')].values[:,2] [0]
             
             
-            
+            # загрузка сиска материалов
             session.findById("wnd[0]/usr/btn%_MATNR_%_APP_%-VALU_PUSH").press()
-            
-            
             session.findById("wnd[1]/tbar[0]/btn[23]").press()
-            session.findById("wnd[2]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\OneDrive - Unilever\\Documents\\Проекты\\SAP GUI scripts"
-            session.findById("wnd[2]/usr/ctxtDY_FILENAME").text = "sample_items_list.csv"
+            session.findById("wnd[2]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Папка, где лежит список позиций материалов для отчета')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Название файла, где находится список позиций')].values[:,2] [0]
             session.findById("wnd[2]/usr/ctxtDY_FILENAME").caretPosition = 21
             session.findById("wnd[2]/tbar[0]/btn[0]").press()
 
@@ -83,10 +94,28 @@ def Main():
             
             
             
-            session.findById("wnd[0]/usr/ctxtBWART-LOW").text = "261"
-            session.findById("wnd[0]/usr/ctxtBWART-HIGH").text = "262"
-            session.findById("wnd[0]/usr/ctxtBUDAT-LOW").text = "01.03.2020"
-            session.findById("wnd[0]/usr/ctxtBUDAT-HIGH").text = "10.03.2020"
+            
+            
+            
+            
+            # загрузка списка заводов
+            session.findById("wnd[0]/usr/btn%_WERKS_%_APP_%-VALU_PUSH").press()
+            session.findById("wnd[1]/tbar[0]/btn[23]").press()
+            session.findById("wnd[2]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Папка, где лежит список  заводов для отчета')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Название файла, где находится список заводов')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").caretPosition = 9
+            session.findById("wnd[2]/tbar[0]/btn[0]").press()
+            
+            # добавлено
+            session.findById("wnd[1]").sendVKey(12)
+            session.findById("wnd[2]/usr/btnSPOP-OPTION1").press()
+            
+            
+            
+            session.findById("wnd[0]/usr/ctxtBWART-LOW").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Movement type (from)')].values[:,2] [0]
+            session.findById("wnd[0]/usr/ctxtBWART-HIGH").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Movement type (to)')].values[:,2] [0]
+            session.findById("wnd[0]/usr/ctxtBUDAT-LOW").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Posting date (from)')].values[:,2] [0].strftime('%d.%m.%Y')
+            session.findById("wnd[0]/usr/ctxtBUDAT-HIGH").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Posting date (to)')].values[:,2] [0].strftime('%d.%m.%Y')
             
             
                         
@@ -99,7 +128,7 @@ def Main():
             
             session.findById("wnd[0]/usr/radRFLAT_L").setFocus
             session.findById("wnd[0]/usr/radRFLAT_L").select
-            session.findById("wnd[0]/usr/ctxtALV_DEF").text = "/spb_stk_mvt"
+            session.findById("wnd[0]/usr/ctxtALV_DEF").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Layout')].values[:,2] [0]
             session.findById("wnd[0]/usr/ctxtALV_DEF").setFocus
             session.findById("wnd[0]/usr/ctxtALV_DEF").caretPosition = 12
                         
@@ -109,14 +138,16 @@ def Main():
             session.findById("wnd[0]/usr/chkDATABASE").selected = True
             
             session.findById("wnd[0]/usr/radPA_DBSTD").select
-            session.findById("wnd[0]/usr/ctxtALV_DEF").text = "/spb_stk_mvt"
+            session.findById("wnd[0]/usr/ctxtALV_DEF").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Layout')].values[:,2] [0]
             session.findById("wnd[0]/usr/radPA_DBSTD").setFocus
             session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
-            session.findById("wnd[0]").sendVKey(8) #'эмулирует нажатие F8 для выполнения кнопки
+            session.findById("wnd[0]").sendVKey(8) #'эмулирует нажатие F8 для выполнения расчета
             session.findById("wnd[0]").sendVKey(16)
             #session.findById("wnd[0]/mbar/menu[0]/menu[0]/menu[0]").select
-            session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\python_SAP_scripting\\MB51_current_report\\"
-            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "export_MB51.xlsx"
+            
+            # сохраняем файл
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'MB51') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0]
             # session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
             # session.findById("wnd[1]/tbar[0]/btn[0]").press
             # session.findById("wnd[1]/tbar[0]/btn[0]").press
@@ -128,9 +159,9 @@ def Main():
         
         
         
-        if 1 == 2:  
+        if transactions_check_list.iloc[2,1]== 'да':  
             try:
-                 os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/cooispi_current_report/export_cooispi.xlsx") 
+                  os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/cooispi_current_report/export_cooispi.xlsx") 
             except OSError:
                   pass 
         
@@ -138,55 +169,121 @@ def Main():
             session.findById("wnd[0]").sendVKey (0)
             
             session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/cmbPPIO_ENTRY_SC1100-PPIO_LISTTYP").key = "PPIOM000"
-            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/ctxtPPIO_ENTRY_SC1100-ALV_VARIANT").text = "/RUB_COMP"
+            session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/ctxtPPIO_ENTRY_SC1100-ALV_VARIANT").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Layout')].values[:,2] [0]
             session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PRODORDS").setFocus
             session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PRODORDS").selected = True
             session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PLANNEDORDS").setFocus
             session.findById("wnd[0]/usr/ssub%_SUBSCREEN_TOPBLOCK:PPIO_ENTRY:1100/chkPPIO_ENTRY_SC1100-SELECT_PLANNEDORDS").selected = True
-            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_WERKS-LOW").text = "Z001"
-            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-LOW").text = "01.05.2020"
-            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").text = "05.05.2020"
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_WERKS-LOW").text =  df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Production plant')].values[:,2] [0]
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-LOW").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Basic Start Date (from)')].values[:,2] [0].strftime('%d.%m.%Y')
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Basic Start Date (to)')].values[:,2] [0].strftime('%d.%m.%Y')
             session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").setFocus
             session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/ctxtS_ECKST-HIGH").caretPosition = 10
-            # session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            # # загрузка списка материалов
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/btn%_S_MATNR_%_APP_%-VALU_PUSH").press()
+            session.findById("wnd[1]/tbar[0]/btn[23]").press()
+            session.findById("wnd[2]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Папка, где лежит список позиций материалов для отчета')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Название файла, где находится список позиций')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").caretPosition = 21
+            session.findById("wnd[2]/tbar[0]/btn[0]").press()
+            session.findById("wnd[1]/tbar[0]/btn[12]").press()
+            session.findById("wnd[2]/usr/btnSPOP-OPTION1").press()
+            
+            session.findById("wnd[0]/usr/tabsTABSTRIP_SELBLOCK/tabpSEL_00/ssub%_SUBSCREEN_SELBLOCK:PPIO_ENTRY:1200/btn%_S_WERKS_%_APP_%-VALU_PUSH").press()
+            session.findById("wnd[1]/tbar[0]/btn[23]").press()
+            session.findById("wnd[2]/usr/ctxtDY_PATH").text =df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Папка, где лежит список  заводов для отчета')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Название файла, где находится список заводов')].values[:,2] [0]
+            session.findById("wnd[2]/usr/ctxtDY_FILENAME").caretPosition = 9
+            session.findById("wnd[2]/tbar[0]/btn[0]").press()
+            # добавлено
+            session.findById("wnd[1]").sendVKey(12)
+            session.findById("wnd[2]/usr/btnSPOP-OPTION1").press()
+
+            
+
+
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
             session.findById("wnd[0]").sendVKey(8)
-            ## добавлена строка
-            # session.findById("wnd[0]").sendVKey(16)
+      
             session.findById("wnd[0]/usr/cntlCUSTOM/shellcont/shell/shellcont/shell").pressToolbarButton ("&NAVIGATION_PROFILE_TOOLBAR_EXPAND")
             session.findById("wnd[0]/usr/cntlCUSTOM/shellcont/shell/shellcont/shell").pressToolbarContextButton ("&MB_EXPORT")
             session.findById("wnd[0]/usr/cntlCUSTOM/shellcont/shell/shellcont/shell").selectContextMenuItem ("&XXL")
-            session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\python_SAP_scripting\\cooispi_current_report\\"
-            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "export_cooispi.xlsx"
-            # session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 14
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'cooispi') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0]
+           
             session.findById("wnd[1]").sendVKey(0)
-            # session.findById("wnd[1]/tbar[0]/btn[0]").press
-            # session.findById("wnd[1]/tbar[0]/btn[0]").press
+
     
     
             
             #MB52
-        if 2 == 1: 
+        if transactions_check_list.iloc[3,1]== 'да': 
+            
+            # сощдаем директорию для сохранения отчетов, если ее еще нет
+            Path("C:/Users/" + sys_user + "/python_SAP_scripting/MB52_current_report").mkdir(parents=True, exist_ok=True)
+            
             try:
-                os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB51_current_report/export_MB52.xlsx") 
+                os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/MB52_current_report/export_MB52.xlsx") 
             except OSError:
                 pass 
            
+            
+        
+            Path("C:/Users/" + sys_user + "/python_SAP_scripting/MB52_current_report").mkdir(parents=True, exist_ok=True)
+            Path("C:/Users/" + sys_user +"/python_SAP_scripting/MB52_stock_history").mkdir(parents=True, exist_ok=True)
+
+                
             session.findById("wnd[0]/tbar[0]/okcd").text = "/nMB52"
             session.findById("wnd[0]").sendVKey (0)
             session.findById("wnd[0]/usr/chkPA_SOND").selected = True
             session.findById("wnd[0]/usr/ctxtMATNR-LOW").text = ""
-            session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = "Z001"
+            session.findById("wnd[0]/usr/ctxtWERKS-LOW").text = df_template[(df_template['Код транзакции']== 'MB52') & (df_template['Название параметров транзакции']=='Plant')].values[:,2] [0]
             session.findById("wnd[0]/usr/radPA_FLT").setFocus
             session.findById("wnd[0]/usr/radPA_FLT").select
-            session.findById("wnd[0]/usr/ctxtP_VARI").text = "/rub_stock"
+            session.findById("wnd[0]/usr/ctxtP_VARI").text = df_template[(df_template['Код транзакции']== 'MB52') & (df_template['Название параметров транзакции']=='Layout')].values[:,2] [0]
             session.findById("wnd[0]/usr/ctxtP_VARI").setFocus
             session.findById("wnd[0]/usr/ctxtP_VARI").caretPosition = 10
             
             session.findById("wnd[0]").sendVKey(8) #'эмулирует нажатие F8 для выполнения кнопки
             session.findById("wnd[0]").sendVKey(43)
             #session.findById("wnd[0]/mbar/menu[0]/menu[0]/menu[0]").select
-            session.findById("wnd[1]/usr/ctxtDY_PATH").text = "C:\\Users\\Maksim.Smirnov\\python_SAP_scripting\\MB51_current_report\\"
-            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = "export_MB52.xlsx"
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'MB52') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text =  df_template[(df_template['Код транзакции']== 'MB52') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0]
             # session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 15
             # session.findById("wnd[1]/tbar[0]/btn[0]").press
             # session.findById("wnd[1]/tbar[0]/btn[0]").press
@@ -194,10 +291,51 @@ def Main():
             session.findById("wnd[1]").sendVKey(0)
                         
             
+
+    
+            now = datetime.now().isocalendar()[1]
+           
+            
+            src_dir="C:/Users/" + sys_user+ "/python_SAP_scripting/MB52_current_report/export_MB52.xlsx"
+            dst_dir="C:/Users/" + sys_user+ "/python_SAP_scripting/MB52_stock_history/MB52_w"+str(now)+'_'+ datetime.today().strftime('%A')+".xlsx"
+            shutil.copy(src_dir,dst_dir)
+                    
             
             
             
             
+            
+            
+            #YUPP_YR1UPP_MRP001
+            
+        if transactions_check_list.iloc[4,1]== 'да': 
+            
+            # сощдаем директорию для сохранения отчетов, если ее еще нет
+            Path("C:/Users/" + sys_user + "/python_SAP_scripting/YR1UPP_MRP001_current_report").mkdir(parents=True, exist_ok=True)
+            
+            try:
+                os.remove("C:/Users/Maksim.Smirnov/python_SAP_scripting/YR1UPP_MRP001_current_report/export_YR1UPP_MRP001.xlsx") 
+            except OSError:
+                pass 
+            
+            session.findById("wnd[0]/tbar[0]/okcd").text = "YR1UPP_MRP001"
+            session.findById("wnd[0]").sendVKey (0)
+            session.findById("wnd[0]/usr/chkP_CBOX").selected = False
+            session.findById("wnd[0]/usr/chkP_CBOX2").selected = False
+            session.findById("wnd[0]/usr/ctxtP_MTART").text = df_template[(df_template['Код транзакции']== 'YR1UPP_MRP001') & (df_template['Название параметров транзакции']=='Material Type')].values[:,2] [0]
+            session.findById("wnd[0]/usr/ctxtS_WERKS-LOW").text = df_template[(df_template['Код транзакции']== 'YR1UPP_MRP001') & (df_template['Название параметров транзакции']=='Plant')].values[:,2] [0]
+            session.findById("wnd[0]/usr/chkP_CBOX2").setFocus
+            session.findById("wnd[0]").sendVKey(8)
+            # session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
+            session.findById("wnd[0]/usr/cntlCONTAINER_100/shellcont/shell").pressToolbarContextButton ("&MB_EXPORT")
+            session.findById("wnd[0]/usr/cntlCONTAINER_100/shellcont/shell").selectContextMenuItem ("&XXL")
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'YR1UPP_MRP001') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'YR1UPP_MRP001') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0]
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").caretPosition = 20
+            session.findById("wnd[1]/tbar[0]/btn[0]").press()
+            
+            
+
         
      except:
           print(sys.exc_info())

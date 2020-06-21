@@ -10,6 +10,7 @@ from pathlib import Path
 import shutil
 import datetime
 from datetime import datetime
+import time
 
 # import comtypes, comtypes.client
 
@@ -30,9 +31,9 @@ def Main():
     #  pass 
      sys_user = getpass.getuser()     
      item_id ="21072242"              
-     path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting" + "\\ ".strip()
+     path_to_template = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting" + "\\ ".strip()
 
-     df_template = pd.read_excel(path + 'template_for_all_transactions.xlsm', dtype={'Material': 'str'})
+     df_template = pd.read_excel(path_to_template + 'template_for_all_transactions.xlsm', dtype={'Material': 'str'})
 
      # получаем список признаков для каждой транзакции запускать/ не запускать
      transactions_check_list = df_template.iloc[:, 4:6]
@@ -211,31 +212,6 @@ def Main():
 
             
 
-
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
             
             session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
             session.findById("wnd[0]").sendVKey(8)
@@ -379,7 +355,7 @@ def Main():
             except OSError:
                 pass 
             
-            session.findById("wnd[0]/tbar[0]/okcd").text = "YR1UPP_MRP001"
+            session.findById("wnd[0]/tbar[0]/okcd").text = "/nYR1UPP_MRP001"
             session.findById("wnd[0]").sendVKey (0)
             session.findById("wnd[0]/usr/chkP_CBOX").selected = False
             session.findById("wnd[0]/usr/chkP_CBOX2").selected = False
@@ -749,7 +725,6 @@ def Main():
             
             #me5a
             
-            #me2m
         if transactions_check_list.iloc[10,1]== 'да': 
             
             # сощдаем директорию для сохранения отчетов, если ее еще нет
@@ -770,10 +745,10 @@ def Main():
             session.findById("wnd[0]/usr/chkP_SELPO").selected = True
             
       
-            session.findById("wnd[0]/usr/ctxtP_LSTUB").text = "A"
-            session.findById("wnd[0]/usr/ctxtS_WERKS-LOW").text = "Z001"
-            session.findById("wnd[0]/usr/ctxtS_LFDAT-LOW").text = "28.05.2020"
-            session.findById("wnd[0]/usr/ctxtS_LFDAT-HIGH").text = "30.08.2020"
+            session.findById("wnd[0]/usr/ctxtP_LSTUB").text = df_template[(df_template['Код транзакции']== 'me5a') & (df_template['Название параметров транзакции']=='Scope of List')].values[:,2] [0]
+            session.findById("wnd[0]/usr/ctxtS_WERKS-LOW").text = df_template[(df_template['Код транзакции']== 'me5a') & (df_template['Название параметров транзакции']=='Plant')].values[:,2] [0]
+            session.findById("wnd[0]/usr/ctxtS_LFDAT-LOW").text = df_template[(df_template['Код транзакции']== 'me5a') & (df_template['Название параметров транзакции']=='Delivery Date (from)')].values[:,2] [0].strftime('%d.%m.%Y')
+            session.findById("wnd[0]/usr/ctxtS_LFDAT-HIGH").text = df_template[(df_template['Код транзакции']== 'me5a') & (df_template['Название параметров транзакции']=='Delivery Date (to)')].values[:,2] [0].strftime('%d.%m.%Y')
             # session.findById("wnd[0]/usr/chkP_BSTBA").setFocus
             # session.findById("wnd[0]").sendVKey (2)
             # session.findById("wnd[0]/usr/chkP_SELGS").selected = True
@@ -783,17 +758,62 @@ def Main():
             # session.findById("wnd[0]/usr/chkP_SELPO").setFocus
             session.findById("wnd[0]").sendVKey (8)
             # session.findById("wnd[0]/mbar/menu[0]/menu[0]").select
+            session.findById("wnd[0]/tbar[1]/btn[43]").press()
+            session.findById("wnd[1]/usr/ctxtDY_PATH").text = df_template[(df_template['Код транзакции']== 'me5a') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]
+            session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'me5a') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0]
+            session.findById("wnd[1]/tbar[0]/btn[0]").press()
+                        
+
+
+
+
+
+
+            #md07
             
+        if transactions_check_list.iloc[11,1]== 'да': 
+            
+            # сощдаем директорию для сохранения отчетов, если ее еще нет
+            Path("C:/Users/" + sys_user + "/python_SAP_scripting/nmd07_current_report").mkdir(parents=True, exist_ok=True)
+            
+            try:
+                os.remove(df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]+\
+                          '\\'+df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0].split('.')[0]+\
+            "_"+ datetime.today().strftime('%d-%m-%Y')+"."+ \
+            df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0].split('.')[1]
+            ) 
+            except OSError:
+                pass        
+            
+            xl = pd.ExcelFile(path_to_template +  'template_for_all_transactions.xlsm')
+            controllers_list= list(xl.parse('MRP controllers для md07').iloc[:,0]) 
 
-
-
-
-
-
-
-
-
-
+            for controller in controllers_list:
+                session.findById("wnd[0]/tbar[0]/okcd").text = "/nmd07"
+                session.findById("wnd[0]").sendVKey (0)
+                session.findById("wnd[0]/usr/tabsTAB210/tabpF02/ssubINCLUDE210:SAPMM61R:0212/ctxtRM61R-WERKS").text = df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Plant')].values[:,2] [0]
+                session.findById("wnd[0]/usr/tabsTAB210/tabpF02/ssubINCLUDE210:SAPMM61R:0212/ctxtRM61R-DISPO").text = controller
+               
+                session.findById("wnd[0]").sendVKey (0)
+                
+                try:
+                    session.findById("wnd[1]/usr/btnSPOP-OPTION1").press()
+                except Exception:
+                    pass 
+                # # time.sleep(5)
+                # session.findById("wnd[0]/tbar[0]/btn[86]").press()
+                session.findById("wnd[0]").sendVKey (86)
+                session.findById("wnd[0]/tbar[1]/btn[43]").press()
+                session.findById("wnd[1]/usr/ctxtDY_PATH").text =  df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Папка сохранения файла')].values[:,2] [0]
+                
+                # составляем название файла формата "<название, заданное пользователем>_<текущая дата>.<расширение, заданное пользователем>"
+                session.findById("wnd[1]/usr/ctxtDY_FILENAME").text = df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0].split('.')[0]+\
+                    "_" +controller + "_" + datetime.today().strftime('%d-%m-%Y')+"."+  df_template[(df_template['Код транзакции']== 'md07') & (df_template['Название параметров транзакции']=='Название файла')].values[:,2] [0].split('.')[1]
+                
+                session.findById("wnd[1]").sendVKey (0)  
+                
+        
+        
 
 
 

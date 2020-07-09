@@ -33,7 +33,7 @@ def Main():
     #len(df_consumption['Week_Number'].value_counts())
     
     ##############################################################################################
-    # удаляем строку, где нет даты. При имеющийся форме отчета из SAP- это последняя строка отчета ("итого")
+    # удаляем строку, где нет даты. При имеющейся форме отчета из SAP- это последняя строка отчета ("итого")
     df_consumption = df_consumption[df_consumption['Entry Date'].notna()]
     
     df_consumption ['Y_W_D'] = df_consumption['Entry Date'].apply(lambda x: str(x.isocalendar()[0:2]))
@@ -381,149 +381,13 @@ def Main():
             df_gorka_total.at[i,'Среднее за весь фактический период'] =sum_of_row
         
         df_gorka_total['Отношение среднего плана к факту'] = df_gorka_total['Среднее за весь прогнозный период']/ df_gorka_total['Среднее за весь фактический период']
-        
-        
-    ####################################################################################################################
-    
-        
-    df_gorka_total.to_excel(writer, sheet_name='Sheet1', index=False, float_format = "%0.1f")
-    worksheet = writer.sheets['Sheet1']    
-    
-    # проходим циклом по ячейкам для форматирования
-    for i in range(df_gorka_total.shape[0]):
-        
-        if i % gorka_size == 0:
-            t =0
-        else:
-            t= i % gorka_size
-        
-        for j in range (2,t+3):
-            # инициализиаруем ячейку, к которой будет применено форматирование, получаем значение формата "А1"
-            range_df = chr(98+j).upper()+str(i+2) 
-             
-            # задаем формат, который будет применен для ячейки
-            format1 = workbook.add_format({'bg_color': '#ACAAAA',
-                                    'font_color': '#9C0006',
-                                    'border':1
-                                    })
-            
-            format2 = workbook.add_format({'bg_color': '#3CCA3E',
-                                    'font_color': '#9C0006',
-                                    'border':1
-                                    })
-            
-            
-            # применяем формат к ячейке путем "условного" форматирования, но в качестве условия ничего 
-    
-    
-             
-                                            
-    
-             # если необходимо условие, то оно задается в таком формате:
-            # worksheet.conditional_format(range_df, {'type': 'cell',
-            #                                     'criteria': 'between',
-            #                                     'minimum': 200,
-            #                                     'maximum': 1000,
-            #                                     'format': format2})
-                       
-            # если необходимо условие, то оно задается в таком формате:
-            # worksheet.conditional_format(range_df, {'type': 'cell',
-            #                                     'criteria': '<',
-            #                                     'value': 2000, 
-            #                                     'format': format2})
-            
-            # df_gorka_total.to_excel(writer, sheet_name='Sheet1', index=True, float_format = "%0.1f")не указывается
-           # пример тут https://stackoverflow.com/questions/22352907/apply-format-to-a-cell-after-being-written-in-xlsxwriter
-            worksheet.conditional_format(range_df, {'type': 'no_errors',
-                                                    'format': format1})
-            
-    
-    #рассчитать среднее значение по прогнозам для каждой недели
-    # выделить цветом отклонение от среднего на 30%        
-    
-    # проходим циклом по ячейкам для форматирования
-    # for i in range(df_gorka_total.shape[0]):
-        
-    #     if i % gorka_size == 0:
-    #         t =0
-    #     else:
-    #         t= i % gorka_size
-           
-    #     for j in range (t, df_gorka_total.shape[1]):
-    #         # инициализиаруем ячейку, к которой будет применено форматирование, получаем значение формата "А1"
-    #         range_df = chr(100+j).upper()+str(i+2)   
-    #         print (i, j)    
-            
-    #         worksheet.conditional_format(range_df, {'type': 'no_errors',
-    #                                                 'format': format2})
-    
-    ##########################################
-    # инициализируем список (list of lists), внутри которого будут собраны списки прогнозных заначений (версии плана) для каждого элемента, 
-    # для каждого элемента будет рассчитано среднее значение      
-    # avrg_forecast = [] 
-      
-    # for column in range (4, gorka_size+3):
-    #     avrg_forecast.append (list(df_gorka_total.iloc[0:column-3, column])) 
-        
-    def fun_mean_list(x):
-        return sum(x)/len(x)
-    
-    def fun_replace_nan (x):
-        return pd.Series(x, dtype=object).fillna(0).tolist()
-    
-    # avrg_forecast = list(map(fun_replace_nan, avrg_forecast))
-    
-    # # список средних за кажду неделю
-    # list_of_avrgs = list(map(fun_mean_list, avrg_forecast))
-    ##########################################    
-    
-    
-    
-    myList = range(0, df_gorka_total.shape[0])# list(range(1, 101)) for Python 3 if you need a list
-    
-    for i in myList[0::gorka_size]:
-        #print (i)
-    
-    
-    
-         
-    #for i in range(df_gorka_total.shape[0]): #############################
-        if i % gorka_size==0:
-            avrg_forecast = [] 
-      
-            for column in range (4, gorka_size+3):
-                avrg_forecast.append (list(df_gorka_total.iloc[i:i+column-3, column])) 
-                avrg_forecast = list(map(fun_replace_nan, avrg_forecast))
-    
-                # список средних за кажду неделю
-                list_of_avrgs = list(map(fun_mean_list, avrg_forecast))
-                    
-     
-            
-        for j in range (4, gorka_size+2):
-            
-            for m in range (2, j): ########################## 0 заменен на 2 в range
-           
-               
-                #avrg_forecast.append (list(df_gorka_total.iloc[0:m, j]))   
-                # инициализируем ячейку, к которой будет применено форматирование, получаем значение формата "А1"
-                range_df = chr(98+j).upper()+str(i+m)   
-                   
-                
-                worksheet.conditional_format(range_df, {'type': 'cell',
-                                                    'criteria': '>',
-                                                    'value': list_of_avrgs[j-3] * 1.3, 
-                                                    'format': format2})       
 
+########################################################################################################################
 
-
-
-
-   
-    # загружаем исходные данные по MB52
+        # загружаем исходные данные по MB52
     #путь к папке с фактическими остатками
    
-        path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB52_current_report" + "\\ ".strip()
+    path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\MB52_current_report" + "\\ ".strip()
         
  
     
@@ -586,20 +450,105 @@ def Main():
     new_columns = cols_to_order + (df_gorka_total.columns.drop(cols_to_order).tolist())
     df_gorka_total = df_gorka_total[new_columns]    
     df_gorka_total.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
+    df_gorka_total.drop(['Material'], axis=1, inplace=True)
 
+    
+        
+    ####################################################################################################################
+    
+        
+    df_gorka_total.to_excel(writer, sheet_name='Sheet1', index=False, float_format = "%0.1f")
+    worksheet = writer.sheets['Sheet1']    
+    
+    # проходим циклом по ячейкам для форматирования
+    for i in range(df_gorka_total.shape[0]):
+        
+        if i % gorka_size == 0:
+            t =0
+        else:
+            t= i % gorka_size
+        
+        for j in range (3,t+4):
+            # инициализиаруем ячейку, к которой будет применено форматирование, получаем значение формата "А1"
+            range_df = chr(98+j).upper()+str(i+2) 
+             
+            # задаем формат, который будет применен для ячейки
+            format1 = workbook.add_format({'bg_color': '#ACAAAA',
+                                    'font_color': '#9C0006',
+                                    'border':1
+                                    })
+            
+            format2 = workbook.add_format({'bg_color': '#3CCA3E',
+                                    'font_color': '#9C0006',
+                                    'border':1
+                                    })
+            
+            
 
+            worksheet.conditional_format(range_df, {'type': 'no_errors',
+                                                    'format': format1})
+            
+    
+    #рассчитать среднее значение по прогнозам для каждой недели
+    # выделить цветом отклонение от среднего на 30%        
+    
+  
+    
+    ##########################################
+    # инициализируем список (list of lists), внутри которого будут собраны списки прогнозных заначений (версии плана) для каждого элемента, 
+    # для каждого элемента будет рассчитано среднее значение      
+    # avrg_forecast = [] 
+      
+    # for column in range (4, gorka_size+3):
+    #     avrg_forecast.append (list(df_gorka_total.iloc[0:column-3, column])) 
+        
+    def fun_mean_list(x):
+        return sum(x)/len(x)
+    
+    def fun_replace_nan (x):
+        return pd.Series(x, dtype=object).fillna(0).tolist()
+    
+    # avrg_forecast = list(map(fun_replace_nan, avrg_forecast))
 
-
-
-
-
-
-
-
-
-
-
-
+    ##########################################    
+    
+    
+    
+    myList = range(0, df_gorka_total.shape[0])
+    
+    for i in myList[0::gorka_size]:
+        #print (i)
+    
+    
+    
+         
+    #for i in range(df_gorka_total.shape[0]): #############################
+        if i % gorka_size==0:
+            avrg_forecast = [] 
+      
+            for column in range (4, gorka_size+4): # при смещении "горки" на 1 колонку  увеличить слагаемое на 1
+                avrg_forecast.append (list(df_gorka_total.iloc[i:i+column-3, column])) 
+                avrg_forecast = list(map(fun_replace_nan, avrg_forecast))
+    
+                # список средних за каждую неделю
+                list_of_avrgs = list(map(fun_mean_list, avrg_forecast))
+                    
+     
+            
+        for j in range (5, gorka_size+3):# при смещении "горки" на 1 колонку  увеличить наачало range и слагаемое на 1
+            
+            for m in range (2, j): ########################## 0 заменен на 2 в range
+           
+               
+                #avrg_forecast.append (list(df_gorka_total.iloc[0:m, j]))   
+                # инициализируем ячейку, к которой будет применено форматирование, получаем значение формата "А1"
+                range_df = chr(98+j).upper()+str(i+m)   
+                   
+                
+                worksheet.conditional_format(range_df, {'type': 'cell',
+                                                    'criteria': '>',
+                                                    'value': list_of_avrgs[j-4] * 1.3, # при смещении "горки" на 1 колонку  увеличить вычитаемое на 1
+                                                    'format': format2})       
 
 
 
@@ -662,9 +611,219 @@ if __name__ == "__main__":
 # df_gorka_MB52 = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
 
 
-# cols_to_order = ['material_id', 'Material Description', 'week_num', 'Unrestricted']
-# new_columns = cols_to_order + (df_gorka_MB52.columns.drop(cols_to_order).tolist())
-# df_gorka_MB52 = df_gorka_MB52[new_columns]    
-# df_gorka_MB52.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  # ################################################
+  #       # загружаем исходные данные по me2m
+    
+    
+ 
+    
+  #   #Обработка ошибок, в случае, если папки  с отчетами me5a нет или папка пустая
+  #   try:
+  #       list_of_me2m_reports = os.listdir('C:/Users/' + sys_user +'/python_SAP_scripting/me2m_history/')
+  #   except OSError:
+  #               pass 
+    
+  #   # в случае, если папка не пустая, то будут обработаны только те файлы, которые относятся к периоду "горки"
+  #   if len(list_of_me2m_reports) !=0:
+        
+    
+  #       # import re
+        
+  #       # # функция для определения номера недели из имени файла по маске "MB52_{номер недели}_{день недели}", например, "MB52_w22_Monday"
+  #       # def report_week_number(x):
+  #       #     return x[6:([m.start() for m in re.finditer('_', x)][1])]
+        
+  #       # получаем список недель, к которым относятся выгруженные очтеты в папке       
+  #       week_num_report_list = list(map(report_week_number, list_of_me2m_reports)) 
+  #       week_num_report_list = list(map(int,week_num_report_list))
+        
+  #       # определеяем какие отчеты нужны для включения в горку по номеру недели (если номер недели пристутвует в отчете для "горки", то отчет включаем)
+  #       both= set(week_num_list).intersection(week_num_report_list)
+  #       required_reports_indices = [week_num_report_list.index(x) for x in both]
+        
+  #       required_reports_list = list(pd.Series(list_of_me2m_reports)[ required_reports_indices])
+        
+        
+  #       #df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/' + stock_report, dtype={'Material': 'str'})
+  #       df_stock_all_reports = pd.DataFrame()
+        
+  #       for stock_report in required_reports_list:
+            
+  #           df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/me2m_history/' + stock_report, dtype={'Material': 'str'})
+  #           # вставить номер недели,на которой был выгружен очтет
+  #           df_stock ['week_num']= int(report_week_number (stock_report))
+            
+  #           df_stock_all_reports =df_stock_all_reports.append(df_stock)
+            
+        
+            
+  #       df_stock_total = df_stock_all_reports.groupby(['Material', 'week_num'])["Order Quantity"].apply(lambda x : x.sum()).reset_index()
+  #   else:
+  #       pass
+  #   # при необходимости создается отедльная таблица df_gorka_MB52
+  #   # df_gorka_MB52 = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
+    
+    
+  #   # cols_to_order = ['material_id', 'Material Description', 'week_num', 'Unrestricted']
+  #   # new_columns = cols_to_order + (df_gorka_MB52.columns.drop(cols_to_order).tolist())
+  #   # df_gorka_MB52 = df_gorka_MB52[new_columns]    
+  #   # df_gorka_MB52.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
+    
+  #   df_gorka_total = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
+       
+  #   cols = ['Quantity Requested', 'Order Quantity' ]
+  #   df_gorka_total[cols] = df_gorka_total[cols].fillna(0)
+    
+  #   df_gorka_total['me5a+me2m'] = df_gorka_total['Quantity Requested'] + df_gorka_total['Order Quantity']
+ 
+    
+    
+    
+    
+  #   cols_to_order = ['material_id', 'Material Description',  'Unrestricted_stock', 'me5a+me2m', 'week_num']
+  #   new_columns = cols_to_order + (df_gorka_total.columns.drop(cols_to_order).tolist())
+  #   df_gorka_total = df_gorka_total[new_columns]    
+  #   # df_gorka_total.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
+  #   df_gorka_total = df_gorka_total.iloc [:,:-4]
+  #   # df_gorka_total.drop(['Material'], axis=1, inplace=True)
+  #   df_gorka_total['Unrestricted_stock'].fillna(0, inplace = True)
+    
+    
+    
+   
+    
+    
+    
+    
+    
+    
+  #   df_gorka_total_netto_digits = df_gorka_total.iloc[:, 5: 5+gorka_size]
+  #   df_gorka_total_netto_digits.columns = range(df_gorka_total_netto_digits.shape[1])
+  #   df_gorka_total_netto_digits.fillna(0, inplace = True)
+    
+    
+  #   # индексы колонок в зависимости от ряда
+  #  # df_gorka_total_netto_digits['column_range']= df_gorka_total_netto_digits.apply(lambda row:  row.index[row.name+1:] if row.index[row.name] == row.name  else None, axis=1)
+  #  df_gorka_total_netto_digits['column_range']= df_gorka_total_netto_digits.apply(lambda row:  row.index[row.name+1:] if row.index[0 if row.name % gorka_size == 0 else row.name % gorka_size] == row.name  else None, axis=1)
+  #  df_gorka_total_netto_digits['column_range'] = list(df_gorka_total_netto_digits['column_range'].loc[:gorka_size-1]) * int((df_gorka_total_netto_digits.shape[0]/gorka_size))
+ 
+    
+  #  def row_diff(x):
+  #      test_list = x [x['column_range']]
+  #      res = list(x[x['column_range']])
+  #      # res = list([test_list[i + 1] - test_list[i] for i in range(len(test_list)-1)]) 
+  #      return res
+   
+
+        
+  #   df_gorka_total_netto_digits['forecast'] = df_gorka_total_netto_digits.apply(row_diff, axis=1) #.loc[:6]
+   
+  #  # изменить на i- i+1
+  #  def diff (x):
+  #      res = list([x['forecast'][i ] - x['forecast'][i+1] for i in range(len(x['forecast'])-1)]) 
+  #      return res
+
+
+  #  df_gorka_total_netto_digits['diff'] = df_gorka_total_netto_digits.apply(diff, axis=1) 
+  #  # df_gorka_total_netto_digits.drop(['column_range'], axis=1, inplace=True)
+   
+   
+   
+   
+   
+  #  # список колонок с фактическими продажами
+  #  # пришлось создать отдельную таблицу с дальншей конкатенацией. Внутри одной таблицы не работали range с индексами для прогнозов и фактов
+   
+  #   df_gorka_total_netto_digits2 = df_gorka_total.iloc[:, 5: 5+gorka_size]
+  #   df_gorka_total_netto_digits2.columns = range(df_gorka_total_netto_digits2.shape[1])
+  #   df_gorka_total_netto_digits2.fillna(0, inplace = True)
+    
+  #   df_gorka_total_netto_digits2['column_fact_range']= df_gorka_total_netto_digits2.apply(lambda row:  row.index[:row.name+1] if row.index[0 if row.name % gorka_size == 0 else row.name % gorka_size] == row.name  else None, axis=1)
+  #   df_gorka_total_netto_digits2['column_fact_range'] = list(df_gorka_total_netto_digits2['column_fact_range'].loc[:gorka_size-1]) * int((df_gorka_total_netto_digits2.shape[0]/gorka_size))
+    
+  #   def row_diff(x):
+  #      test_list = x [x['column_fact_range']]
+  #      res = list(x[x['column_fact_range']])
+  #      # res = list([test_list[i + 1] - test_list[i] for i in range(len(test_list)-1)]) 
+  #      return res
+   
+    
+  #   df_gorka_total_netto_digits2['fact'] = df_gorka_total_netto_digits2.apply(row_diff, axis=1)
+  #   df_out = df_gorka_total_netto_digits2.apply(row_diff, axis=1)
+    
+    
+  #   df_gorka_total_netto_digits = pd.concat([df_gorka_total_netto_digits, df_gorka_total_netto_digits2['fact']], axis =1)
+    
+  #   # выделим первый эелемент в списке значений прогноза
+  #   df_gorka_total_netto_digits ['first_stock']= df_gorka_total_netto_digits['forecast'].apply(lambda x: x[0] if len(x) !=0 else None)
+    
+  #   # расчитаем остаток на первой прогнозной неделе
+  #   df_gorka_total_netto_digits ['first_stock_forecast'] = df_gorka_total ['Unrestricted_stock']+df_gorka_total ['me5a+me2m']-df_gorka_total_netto_digits ['first_stock']
+    
+  #   # функция для расчтета убывающего остатка накопительным итогом, начиная со второй прогнозной недели
+    
+  #   def cumulative_stock (consumption_list):
+  #       try:
+  #           final_stock_by_week = [consumption_list[0]]
+  #           for i in range (len(consumption_list)-1):
+  #               final_stock_by_week.append (final_stock_by_week[i]-consumption_list[i+1])
+  #           return final_stock_by_week
+  #       except Exception:
+  #           pass
+    
+  #   # функция для замены первого элемента с прогнозом на прогнозный остаток
+  #   def replace_first_element(x):
+  #       try:
+  #           x['forecast'][0]= x ['first_stock_forecast']
+            
+  #           return x['forecast'] 
+  #       except Exception:
+  #           pass
+    
+  #   # replace_first_element(df_gorka_total_netto_digits['forecast'][0])
+    
+  #   # df_gorka_total_netto_digits['first_stock_forecast']
+           
+  #   df_gorka_total_netto_digits ['first_stock_week_range']  =  df_gorka_total_netto_digits.apply(replace_first_element, axis =1) 
+  #   df_gorka_total_netto_digits ['cumulative_stock']= df_gorka_total_netto_digits['first_stock_week_range'].apply(cumulative_stock )
+    
+  #   df_gorka_total_netto_digits ['gorka_pattern']= df_gorka_total_netto_digits ['fact'] + df_gorka_total_netto_digits ['cumulative_stock']
+  #   df_gorka_total_netto_digits['gorka_pattern'].loc[df_gorka_total_netto_digits['gorka_pattern'].isnull()] = df_gorka_total_netto_digits['fact']
+    
+  #  # df_gorka_total_netto_digits ['gorka_pattern']=  df_gorka_total_netto_digits.apply(lambda x: x['fact'] if x['gorka_pattern'].isnull() else x['gorka_pattern'])
+
+    
+  #   # разбиваем полученный список из занчений факта и остатка накопительным итогом на столбцы
+  #   df_gorka_total_netto_digits [list(map(str,  week_num_list))]= pd.DataFrame(df_gorka_total_netto_digits.gorka_pattern.tolist(), index= df_gorka_total_netto_digits.index)
+    
+  #   df_double_gorka = pd.concat([df_gorka_total, df_gorka_total_netto_digits.iloc[:, -gorka_size:]], axis =1)
+
+  #   df_first_gorka = df_double_gorka.iloc[:, :gorka_size+11]
+    
+  #   rng = list(range(0,5)) + list(range( gorka_size+5+6, len(df_double_gorka.columns) )) + list(range(gorka_size+5, gorka_size+11))
+                                  
+  #   df_second_gorka = df_double_gorka.iloc[:, rng]
+    
+  #   df_first_gorka['flag'] = '1'
+  #   df_second_gorka['flag'] = '2'
+    
+  #   df_gorka_brutto_netto = df_first_gorka.append([df_second_gorka])
+  #   df_gorka_brutto_netto = df_gorka_brutto_netto.sort_values(['material_id', 'flag'], ascending=[True, True])
+    
+  #   df_gorka_brutto_netto.drop(['flag'], axis=1, inplace=True)

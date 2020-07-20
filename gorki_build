@@ -24,6 +24,7 @@ def Main():
     
     # вводим колонку с номером недели
     df_consumption['Week_Number'] = df_consumption['Entry Date'].dt.week
+    # df_consumption['Entry Date'].dt.to_period('W').apply(lambda r: r.start_time).dt.week
     
     # считаем сумму по потреблению материала за конкретную неделю
     consumption_total = df_consumption.groupby(['Material', 'Week_Number'])["Quantity"].apply(lambda x : x.sum())
@@ -706,7 +707,7 @@ def Main():
     
     
     
-    df_gorka_total_netto_digits ['first_stock_forecast'] = df_gorka_total_netto_digits ['first_stock_forecast'].apply(lambda x: 0 if x >0 else x)
+    # df_gorka_total_netto_digits ['first_stock_forecast'] = df_gorka_total_netto_digits ['first_stock_forecast'].apply(lambda x: 0 if x >0 else x)
     
     
     
@@ -745,33 +746,46 @@ def Main():
     #     except Exception:
     #         pass
         
-    def cumulative_stock (consumption_list):
-        try:
-            final_stock_by_week = [consumption_list[0]]
-            if consumption_list[0] <0:
-                flag_negative =1
-                final_stock_by_week[0] = abs(final_stock_by_week[0])
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # def cumulative_stock (consumption_list):
+    #     try:
+    #         final_stock_by_week = [consumption_list[0]]
+    #         if consumption_list[0] <0:
+    #             flag_negative =1
+    #             final_stock_by_week[0] = abs(final_stock_by_week[0])
                 
-            else:
-                flag_negative = 0
-            for i in range (len(consumption_list)-1):
-                if flag_negative !=1 and consumption_list[i+1] !=0:
-                    final_stock_by_week.append (final_stock_by_week[i]- consumption_list[i+1])
-                    # если "флаг" с отрицательным остатком "не включен", но потребление равно 0 на конкретной неделе, 
-                    # то нетто потребностьтоже равна 0
-                elif consumption_list[i+1]==0:
-                    final_stock_by_week.append (consumption_list[i+1])
+    #         else:
+    #             flag_negative = 0
+    #         for i in range (len(consumption_list)-1):
+    #             if flag_negative !=1 and consumption_list[i+1] !=0:
+    #                 final_stock_by_week.append (final_stock_by_week[i]- consumption_list[i+1])
+    #                 # если "флаг" с отрицательным остатком "не включен", но потребление равно 0 на конкретной неделе, 
+    #                 # то нетто потребностьтоже равна 0
+    #             elif consumption_list[i+1]==0:
+    #                 final_stock_by_week.append (consumption_list[i+1])
                 
-                else:
-                      final_stock_by_week.append (consumption_list[i+1])  
-                # если элемент имеет отрицательное значение, то берем его по модулю и делаем "флаг" с признаком отрицательных значений
-                if final_stock_by_week[i+1]<0:
-                   final_stock_by_week[i+1] = abs (final_stock_by_week[i+1]) 
-                   flag_negative = 1
+    #             else:
+    #                   final_stock_by_week.append (consumption_list[i+1])  
+    #             # если элемент имеет отрицательное значение, то берем его по модулю и делаем "флаг" с признаком отрицательных значений
+    #             if final_stock_by_week[i+1]<0:
+    #                final_stock_by_week[i+1] = abs (final_stock_by_week[i+1]) 
+    #                flag_negative = 1
                    
-            return final_stock_by_week
-        except Exception:
-            pass  
+    #         return final_stock_by_week
+    #     except Exception:
+    #         pass  
     
     # функция для замены первого элемента с брутто прогнозом на расчетный прогнозный остаток
     def replace_first_element(x):
@@ -782,7 +796,58 @@ def Main():
         except Exception:
             pass
     
-
+    
+    def cumulative_stock (consumption_list):
+        try:
+            # инициализируем 2 массива
+            # в массив будут собираться элементы, рекусивным вычитанием из остатка потребности
+            final_stock_by_week = [consumption_list[0]]
+            # в массив будут собираться элементы в зависимости от знака остатка в final_stock_by_week
+            net_order_volume  = [final_stock_by_week[0]]
+            if consumption_list[0] <=0:
+                # flag_negative =1
+                # final_stock_by_week[0] = abs(final_stock_by_week[0])
+                net_order_volume  = [abs(final_stock_by_week[0])]
+                
+            else:
+                # final_stock_by_week[0] =0
+                net_order_volume[0]  =0
+                
+            for i in range (len(consumption_list)-1): #len(consumption_list)-1
+              
+                # if flag_negative !=1 :
+                final_stock_by_week.append (final_stock_by_week[i]- consumption_list[i+1])
+                    
+                    
+                    
+                    
+                if final_stock_by_week[i+1] >= 0:
+                    flag_negative =0
+                    net_order_volume.append (0)
+                else:
+                    # final_stock_by_week[i] = final_stock_by_week[i]
+                    flag_negative =1
+                    net_order_volume.append (abs(final_stock_by_week[i+1]) if final_stock_by_week[i]>0 else  consumption_list[i+1]) #if flag_negative==0 else  consumption_list[i+1])
+                    # net_order_volume.append (consumption_list[i+1])
+                    
+                          
+                          
+                           
+                    # если "флаг" с отрицательным остатком "не включен", но потребление равно 0 на конкретной неделе, 
+                    # то нетто потребностьтоже равна 0
+                # elif consumption_list[i+1]==0:
+                #     final_stock_by_week.append (consumption_list[i+1])
+                
+                # else:
+                #       final_stock_by_week.append (consumption_list[i+1])  
+                # если элемент имеет отрицательное значение, то берем его по модулю и делаем "флаг" с признаком отрицательных значений
+                # if final_stock_by_week[i+1]<0:
+                #    final_stock_by_week[i+1] = abs (final_stock_by_week[i+1]) 
+                #    flag_negative = 1
+                   
+            return net_order_volume #final_stock_by_week[0] #net_order_volume
+        except Exception:
+            pass 
            
     df_gorka_total_netto_digits ['first_stock_week_range']  =  df_gorka_total_netto_digits.apply(replace_first_element, axis =1) 
     df_gorka_total_netto_digits ['cumulative_stock']= df_gorka_total_netto_digits['first_stock_week_range'].apply(cumulative_stock )
@@ -837,7 +902,7 @@ def Main():
     df_gorka_total.to_excel(writer, sheet_name='Sheet1', index=False, float_format = "%0.1f")
     worksheet = writer.sheets['Sheet1']    
     
-    # проходим циклом по ячейкам для форматирования
+    # проходим циклом по ячейкам для форматирования "горки" с фактичесим потребелением "серым" цветом
     for i in range(df_gorka_total.shape[0]):
         
         if i % gorka_size == 0:
@@ -915,7 +980,7 @@ def Main():
         if  df_gorka_total['flag'].iloc[i]=='1' :
             for j in range (5, gorka_size+4):# при смещении "горки" на 1 колонку  увеличить наачало range и слагаемое на 1
                 
-                for m in range (2, j): ########################## 0 заменен на 2 в range
+                for m in range (2, j-1): ########################## 0 заменен на 2 в range
                
                    
                     #avrg_forecast.append (list(df_gorka_total.iloc[0:m, j]))   
@@ -941,3 +1006,4 @@ def Main():
 #-Main------------------------------------------------------------------
 if __name__ == "__main__":
   Main()
+

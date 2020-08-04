@@ -20,7 +20,7 @@ def Main():
     
     #path = path.replace('Maxim.Smirnov', sys_user)
     
-    df_consumption = pd.read_excel(path + 'export_MB51.xlsx', dtype={'Material': 'str'})
+    df_consumption = pd.read_excel(path + 'MB51.xlsx', dtype={'Material': 'str'})
     
     # вводим колонку с номером недели
     df_consumption['Week_Number'] = df_consumption['Entry Date'].dt.week
@@ -614,8 +614,99 @@ def Main():
     new_columns = cols_to_order + (df_gorka_total.columns.drop(cols_to_order).tolist())
     df_gorka_total = df_gorka_total[new_columns]    
     # df_gorka_total.rename(columns={'Unrestricted': 'Unrestricted_stock'}, inplace=True)
-    df_gorka_total = df_gorka_total.iloc [:,:-4]
-    # df_gorka_total.drop(['Material'], axis=1, inplace=True)
+    # df_gorka_total = df_gorka_total.iloc [:,:-4]
+    df_gorka_total.drop(['Material_x', 'Material_y'], axis=1, inplace=True)
+    
+    
+    
+#############################################
+#добавляем данные по остаткам у постащика
+
+
+
+    #путь к папке с фактическими остатками
+   
+    path = r"C:\Users" + "\\ ".strip() + sys_user + "\\ ".strip() + "python_SAP_scripting\Supplier_stock" + "\\ ".strip()
+        
+ 
+    
+     #Обработка ошибок, в случае, если папки  с отчетами MB52 нет или папка пустая
+    try:
+         list_of_supplier_stock_reports = os.listdir('C:/Users/' + sys_user +'/python_SAP_scripting/Supplier_stock/')
+    except OSError:
+                 pass 
+    
+     # в случае, если папка не пустая, то будут обработаны только те файлы, которые относятся к периоду "горки"
+    if len(list_of_supplier_stock_reports) !=0:
+        
+    
+         import re
+        
+         # функция для определения номера недели из имени файла по маске "MB52_{номер недели}_{день недели}", например, "MB52_w22_Monday"
+         def report_week_number(x):
+             return x[6:([m.start() for m in re.finditer('_', x)][1])]
+        
+         # получаем список недель, к которым относятся выгруженные очтеты в папке       
+         week_num_report_list = list(map(report_week_number, list_of_supplier_stock_reports)) 
+         week_num_report_list = list(map(int,week_num_report_list))
+        
+         # определеяем какие отчеты нужны для включения в горку по номеру недели (если номер недели пристутвует в отчете для "горки", то отчет включаем)
+         both= set(week_num_list).intersection(week_num_report_list)
+         required_reports_indices = [week_num_report_list.index(x) for x in both]
+        
+         required_reports_list = list(pd.Series(list_of_supplier_stock_reports)[ required_reports_indices])
+        
+        
+         #df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/MB52_stock_history/' + stock_report, dtype={'Material': 'str'})
+         df_stock_all_reports = pd.DataFrame()
+        
+         for stock_report in required_reports_list:
+            
+             df_stock  = pd.read_excel('C:/Users/' + sys_user +'/python_SAP_scripting/Supplier_stock/' + stock_report, dtype={'Material': 'str'})
+             # вставить номер недели,на которой был выгружен очтет
+             df_stock ['week_num']= int(report_week_number (stock_report))
+            
+             df_stock_all_reports =df_stock_all_reports.append(df_stock)
+            
+        
+            
+         df_stock_total = df_stock_all_reports.groupby(['Material', 'week_num'])["Quantity"].apply(lambda x : x.sum()).reset_index()
+    else:
+         pass
+
+    
+    df_gorka_total = pd.merge(df_gorka_total, df_stock_total, how='left', left_on=['material_id', 'week_num'], right_on=['Material', 'week_num'] )
+    
+    df_gorka_total['Quantity'] =df_gorka_total['Quantity'].fillna(0)
+    
+    df_gorka_total['me5a+me2m']=df_gorka_total['me5a+me2m']+ df_gorka_total['Quantity']
+    df_gorka_total.drop(['Material'], axis=1, inplace=True)
+    
+        
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     df_gorka_total['Unrestricted_stock'].fillna(0, inplace = True)
     
     
@@ -1007,3 +1098,80 @@ def Main():
 if __name__ == "__main__":
   Main()
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+#   def cumulative_stock (consumption_list):
+#         try:
+#             # инициализируем 2 массива
+#             # в массив будут собираться элементы, рекусивным вычитанием из остатка потребности
+#             final_stock_by_week = [consumption_list[0]]
+#             # в массив будут собираться элементы в зависимости от знака остатка в final_stock_by_week
+#             net_order_volume  = [final_stock_by_week[0]]
+#             if consumption_list[0] <=0:
+#                 # flag_negative =1
+#                 # final_stock_by_week[0] = abs(final_stock_by_week[0])
+#                 net_order_volume  = [abs(final_stock_by_week[0])]
+                
+#             else:
+#                 # final_stock_by_week[0] =0
+#                 net_order_volume[0]  =0
+                
+#             for i in range (len(consumption_list)-1): #len(consumption_list)-1
+              
+#                 # if flag_negative !=1 :
+#                 final_stock_by_week.append (final_stock_by_week[i]- consumption_list[i+1])
+                    
+                    
+                    
+                    
+#                 if final_stock_by_week[i+1] >= 0:
+#                     flag_negative =0
+#                     net_order_volume.append (0)
+#                 else:
+#                     # final_stock_by_week[i] = final_stock_by_week[i]
+#                     flag_negative =1
+#                     net_order_volume.append (abs(final_stock_by_week[i+1]) if final_stock_by_week[i]>0 else  consumption_list[i+1]) #if flag_negative==0 else  consumption_list[i+1])
+#                     # net_order_volume.append (consumption_list[i+1])
+                    
+                          
+                          
+                           
+#                     # если "флаг" с отрицательным остатком "не включен", но потребление равно 0 на конкретной неделе, 
+#                     # то нетто потребностьтоже равна 0
+#                 # elif consumption_list[i+1]==0:
+#                 #     final_stock_by_week.append (consumption_list[i+1])
+                
+#                 # else:
+#                 #       final_stock_by_week.append (consumption_list[i+1])  
+#                 # если элемент имеет отрицательное значение, то берем его по модулю и делаем "флаг" с признаком отрицательных значений
+#                 # if final_stock_by_week[i+1]<0:
+#                 #    final_stock_by_week[i+1] = abs (final_stock_by_week[i+1]) 
+#                 #    flag_negative = 1
+                   
+#             return net_order_volume #final_stock_by_week[0] #net_order_volume
+#         except Exception:
+#             pass          
+        
+# cumulative_stock(df_gorka_total_netto_digits['first_stock_week_range'][92])        
+# cumulative_stock(df_gorka_total_netto_digits['first_stock_week_range'][4])  
+# cumulative_stock(df_gorka_total_netto_digits['first_stock_week_range'][12]) 
+# cumulative_stock(df_gorka_total_netto_digits['first_stock_week_range'][0]) 
+
+# consumption_list = df_gorka_total_netto_digits['first_stock_week_range'][0]
